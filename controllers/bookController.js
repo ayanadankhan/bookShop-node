@@ -37,6 +37,34 @@ exports.getBookByISBN = async (req, res) => {
   }
 };
 
+exports.createBook = async (req, res) => {
+  try {
+    // Extract book details from request body
+    const { isbn, title, author, description, publishedYear, reviews } = req.body;
+
+    // Create a new book in the database
+    const newBook = await Book.create({
+      isbn,
+      title,
+      author,
+      description,
+      publishedYear,
+      reviews
+    });
+
+    // Respond with the created book details
+    res.status(201).json({
+      status: 'success',
+      data: { book: newBook }
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.message
+    });
+  }
+};
+
 exports.getBooksByAuthor = async (req, res) => {
   try {
     const books = await Book.find({ author: new RegExp(req.params.author, 'i') }).populate('reviews');
