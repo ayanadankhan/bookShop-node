@@ -23,7 +23,7 @@ const bookSchema = new mongoose.Schema({
   publishedYear: Number,
   reviews: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'Review'
   }]
 });
 
