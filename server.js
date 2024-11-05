@@ -31,6 +31,7 @@ app.use('/api', limiter);
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/books', bookRoutes);
+// app.use('/api/books/:bookId/reviews', reviewRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

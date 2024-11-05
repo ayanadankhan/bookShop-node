@@ -24,7 +24,8 @@ exports.createReview = async (req, res) => {
   try {
     const { rating, comment } = req.body;
     const bookId = req.params.bookId;
-    
+
+    // Create the review
     const review = await Review.create({
       rating,
       comment,
@@ -32,21 +33,56 @@ exports.createReview = async (req, res) => {
       user: req.user._id
     });
 
+    // Add review to the book's reviews array
     await Book.findByIdAndUpdate(bookId, {
       $push: { reviews: review._id }
     });
 
+    // Use aggregation to populate user and book
+    const populatedReview = await Review.aggregate([
+      { $match: { _id: review._id } },
+      {
+        $lookup: {
+          from: 'users',             // Collection name of the 'user' model
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      { $unwind: '$user' },         // Convert user array to an object
+      {
+        $lookup: {
+          from: 'books',             // Collection name of the 'book' model
+          localField: 'book',
+          foreignField: '_id',
+          as: 'book'
+        }
+      },
+      { $unwind: '$book' },         // Convert book array to an object
+      {
+        $project: {
+          rating: 1,
+          comment: 1,
+          'user.username': 1,        // Include only the username from user
+          'book.title': 1,           // Include only the title from book
+          createdAt: 1
+        }
+      }
+    ]);
+
     res.status(201).json({
       status: 'success',
-      data: { review }
+      data: { review: populatedReview[0] } // Access first item in array
     });
   } catch (error) {
+    console.error("Error creating review:", error);
     res.status(400).json({
       status: 'fail',
       message: error.message
     });
   }
 };
+
 
 exports.updateReview = async (req, res) => {
   try {
